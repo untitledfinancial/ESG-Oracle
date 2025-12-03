@@ -11,9 +11,6 @@ The ESG Oracle aggregates sustainability data from 6 authoritative sources (Worl
 
 ## 🎯 What It Does
 
-### **The Mission:**
-Create a stablecoin where **bad actors pay more**, and their fees fund **regenerative causes**.
-
 ### **The System:**
 ```
 Company uses DPX
