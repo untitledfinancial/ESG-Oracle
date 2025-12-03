@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DPX ESG Oracle Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: #333;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .header h1 {
+            color: #11998e;
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+
+        .header .subtitle {
+            color: #666;
+            font-size: 16px;
+        }
+
+        .status-bar {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .status-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .status-card h3 {
+            font-size: 14px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+        }
+
+        .status-card .value {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .status-card .label {
+            font-size: 14px;
+            color: #999;
+        }
+
+        .score-e { color: #10b981; }
+        .score-s { color: #3b82f6; }
+        .score-g { color: #8b5cf6; }
+        .score-avg { color: #11998e; }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .card h2 {
+            font-size: 20px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .metric-item {
+            padding: 15px;
+            background: #f9fafb;
+            border-radius: 8px;
+        }
+
+        .metric-item .label {
+            font-size: 12px;
+            color: #999;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .metric-item .value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .fee-display {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 12px;
+            color: white;
+        }
+
+        .fee-display .fee-value {
+            font-size: 48px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .fee-display .fee-label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f4f6;
+            border-top: 3px solid #11998e;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .timestamp {
+            text-align: center;
+            color: white;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        .api-status {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .api-item {
+            padding: 10px;
+            background: #f0f9ff;
+            border-radius: 6px;
+            font-size: 12px;
+            text-align: center;
+        }
+
+        .api-item.active {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .full-width-card {
+            grid-column: 1 / -1;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🌍 DPX ESG Oracle</h1>
+            <p class="subtitle">Environmental, Social & Governance Monitoring</p>
+        </div>
+
+        <div id="loading" class="card loading">
+            <div class="spinner"></div>
+            <p>Loading ESG data...</p>
+        </div>
+
+        <div id="dashboard" style="display: none;">
+            <div class="status-bar">
+                <div class="status-card">
+                    <h3>Environmental</h3>
+                    <div class="value score-e" id="eScore">--</div>
+                    <div class="label">E Score</div>
+                </div>
+                <div class="status-card">
+                    <h3>Social</h3>
+                    <div class="value score-s" id="sScore">--</div>
+                    <div class="label">S Score</div>
+                </div>
+                <div class="status-card">
+                    <h3>Governance</h3>
+                    <div class="value score-g" id="gScore">--</div>
+                    <div class="label">G Score</div>
+                </div>
+                <div class="status-card">
+                    <h3>Average</h3>
+                    <div class="value score-avg" id="avgScore">--</div>
+                    <div class="label">ESG Score</div>
+                </div>
+            </div>
+
+            <div class="main-grid">
+                <div class="card">
+                    <h2>📊 ESG Score Trends</h2>
+                    <canvas id="esgChart"></canvas>
+                </div>
+
+                <div class="card">
+                    <h2>💰 Current Fee</h2>
+                    <div class="fee-display">
+                        <div class="fee-label">ESG-Based Transaction Fee</div>
+                        <div class="fee-value" id="feeValue">--%</div>
+                        <div class="fee-label">Lower score = Higher fee</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="main-grid">
+                <div class="card">
+                    <h2>🌱 Environmental Metrics</h2>
+                    <div class="metrics-grid" id="envMetrics">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h2>👥 Social Metrics</h2>
+                    <div class="metrics-grid" id="socialMetrics">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="card full-width-card">
+                <h2>🏛️ Governance Metrics</h2>
+                <div class="metrics-grid" id="govMetrics">
+                    <!-- Populated by JavaScript -->
+                </div>
+            </div>
+
+            <div class="card full-width-card">
+                <h2>📡 Data Source Status</h2>
+                <div class="api-status">
+                    <div class="api-item active">🌍 World Bank</div>
+                    <div class="api-item active">🇺🇳 UN SDG</div>
+                    <div class="api-item active">🌡️ Climate Monitor</div>
+                    <div class="api-item active">💼 IMF</div>
+                    <div class="api-item active">📊 OECD</div>
+                    <div class="api-item active">📈 SEC EDGAR</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="timestamp" id="lastUpdate">Last updated: --</div>
+    </div>
+
+    <script>
+        let chart = null;
+
+        async function fetchData() {
+            try {
+                const response = await fetch('/api/status');
+                const data = await response.json();
+                
+                if (data.status === 'SUCCESS') {
+                    updateDashboard(data);
+                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('dashboard').style.display = 'block';
+                } else if (data.status === 'INITIALIZING') {
+                    // Keep showing loading
+                } else {
+                    document.getElementById('loading').innerHTML = `
+                        <p style="color: #ef4444;">❌ Error: ${data.error || 'Unknown error'}</p>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                document.getElementById('loading').innerHTML = `
+                    <p style="color: #ef4444;">❌ Failed to connect to ESG oracle</p>
+                `;
+            }
+        }
+
+        function updateDashboard(data) {
+            const result = data.data;
+            
+            // Update scores
+            document.getElementById('eScore').textContent = result.scores.environmental;
+            document.getElementById('sScore').textContent = result.scores.social;
+            document.getElementById('gScore').textContent = result.scores.governance;
+            
+            const avgScore = Math.round((
+                result.scores.environmental + 
+                result.scores.social + 
+                result.scores.governance
+            ) / 3);
+            document.getElementById('avgScore').textContent = avgScore;
+            
+            // Update fee
+            document.getElementById('feeValue').textContent = (result.fee * 100).toFixed(2) + '%';
+            
+            // Update metrics
+            updateMetrics(result.rawMetrics);
+            
+            // Update chart
+            updateChart();
+            
+            // Update timestamp
+            document.getElementById('lastUpdate').textContent = `Last updated: ${data.lastUpdate}`;
+        }
+
+        function updateMetrics(rawMetrics) {
+            // Environmental metrics
+            const envHtml = Object.entries(rawMetrics.environmental || {}).map(([key, value]) => `
+                <div class="metric-item">
+                    <div class="label">${key.toUpperCase()}</div>
+                    <div class="value">${value}/100</div>
+                </div>
+            `).join('');
+            document.getElementById('envMetrics').innerHTML = envHtml || '<p>No data</p>';
+            
+            // Social metrics
+            const socialHtml = Object.entries(rawMetrics.social || {}).map(([key, value]) => `
+                <div class="metric-item">
+                    <div class="label">${key.toUpperCase()}</div>
+                    <div class="value">${value}/100</div>
+                </div>
+            `).join('');
+            document.getElementById('socialMetrics').innerHTML = socialHtml || '<p>No data</p>';
+            
+            // Governance metrics
+            const govHtml = Object.entries(rawMetrics.governance || {}).map(([key, value]) => `
+                <div class="metric-item">
+                    <div class="label">${key.toUpperCase()}</div>
+                    <div class="value">${value}/100</div>
+                </div>
+            `).join('');
+            document.getElementById('govMetrics').innerHTML = govHtml || '<p>No data</p>';
+        }
+
+        async function updateChart() {
+            try {
+                const response = await fetch('/api/history');
+                const history = await response.json();
+                
+                if (history.length === 0) return;
+                
+                const ctx = document.getElementById('esgChart').getContext('2d');
+                
+                if (chart) {
+                    chart.destroy();
+                }
+                
+                chart = new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: history.map(h => new Date(h.timestamp).toLocaleTimeString()),
+                        datasets: [
+                            {
+                                label: 'Environmental',
+                                data: history.map(h => h.environmental),
+                                borderColor: '#10b981',
+                                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Social',
+                                data: history.map(h => h.social),
+                                borderColor: '#3b82f6',
+                                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                                tension: 0.4
+                            },
+                            {
+                                label: 'Governance',
+                                data: history.map(h => h.governance),
+                                borderColor: '#8b5cf6',
+                                backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                                tension: 0.4
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'bottom'
+                            }
+                        },
+                        scales: {
+                            y: {
+                                min: 0,
+                                max: 100
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error updating chart:', error);
+            }
+        }
+
+        // Initial fetch
+        fetchData();
+        
+        // Refresh every 30 seconds
+        setInterval(fetchData, 30000);
+    </script>
+</body>
+</html>

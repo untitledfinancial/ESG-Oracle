@@ -1,0 +1,30 @@
+{
+  "name": "dpx-esg-oracle",
+  "version": "1.0.0",
+  "description": "ESG Oracle for DPX Stablecoin - Environmental, Social & Governance Metrics",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node oracle.js",
+    "dev": "NODE_ENV=development node server.js"
+  },
+  "keywords": [
+    "esg",
+    "oracle",
+    "sustainability",
+    "defi",
+    "stablecoin"
+  ],
+  "author": "Victoria - DPX Project",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^1.6.2",
+    "dotenv": "^16.3.1",
+    "ethers": "^6.9.0",
+    "express": "^4.18.2",
+    "winston": "^3.11.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

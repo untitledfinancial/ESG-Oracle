@@ -1,0 +1,15 @@
+{
+  "environmental": {
+    "co2": 0.5,
+    "ch4": 0.2,
+    "temperature": 0.3
+  },
+  "social": {
+    "education": 0.7,
+    "health": 0.3
+  },
+  "governance": {
+    "gdp": 0.4,
+    "corruption": 0.6
+  }
+}
